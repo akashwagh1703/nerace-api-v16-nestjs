@@ -1,0 +1,19 @@
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { VendorController } from './vendor.controller';
+import { VendorService } from './vendor.service';
+import { HelpersModule } from '../../common/helpers/helpers.module';
+
+@Module({
+  imports: [
+    HelpersModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'nerace-secret-key',
+      signOptions: { expiresIn: '24h' },
+    }),
+  ],
+  controllers: [VendorController],
+  providers: [VendorService],
+  exports: [VendorService],
+})
+export class VendorModule {}
