@@ -1,24 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { Client } from 'pg';
+import { executeQuery } from '../../common/config/database.config';
 
 @Injectable()
 export class ChatService {
   constructor() {}
 
   async getConversations(userId: number) {
-    const client = new Client({
-      host: '10.48.36.100',
-      port: 5432,
-      user: 'postgres',
-      password: 'Supp0rt@123',
-      database: 'nerace',
-    });
-
     try {
-      await client.connect();
-      
-      // Get conversations from chat_conversations table
-      const result = await client.query(`
+      const result = await executeQuery(`
         SELECT 
           cc.id as conversation_id,
           cc.topic,
@@ -45,7 +34,7 @@ export class ChatService {
         LIMIT 10
       `, [userId]);
 
-      const conversations = result.rows.map(row => ({
+      const conversations = result.map(row => ({
         conversation_id: row.conversation_id,
         topic: row.topic || 'General Discussion',
         participant_name: row.participant_name || 'Unknown User',
@@ -70,25 +59,12 @@ export class ChatService {
         data: null,
         message: `Error: ${error.message}`
       };
-    } finally {
-      await client.end();
     }
   }
 
   async getMessages(conversationId: string, userId: number) {
-    const client = new Client({
-      host: '10.48.36.100',
-      port: 5432,
-      user: 'postgres',
-      password: 'Supp0rt@123',
-      database: 'nerace',
-    });
-
     try {
-      await client.connect();
-      
-      // Get messages from chat_messages table
-      const result = await client.query(`
+      const result = await executeQuery(`
         SELECT 
           cm.id as message_id,
           cm.sender_id,
@@ -103,7 +79,7 @@ export class ChatService {
         LIMIT 50
       `, [conversationId]);
 
-      const messages = result.rows.map(row => ({
+      const messages = result.map(row => ({
         message_id: row.message_id,
         sender_id: row.sender_id,
         sender_name: row.sender_id == userId ? 'You' : (row.sender_name || 'Unknown User'),
@@ -130,25 +106,12 @@ export class ChatService {
         data: null,
         message: `Error: ${error.message}`
       };
-    } finally {
-      await client.end();
     }
   }
 
   async sendMessage(userId: number, messageData: any) {
-    const client = new Client({
-      host: '10.48.36.100',
-      port: 5432,
-      user: 'postgres',
-      password: 'Supp0rt@123',
-      database: 'nerace',
-    });
-
     try {
-      await client.connect();
-      
-      // Insert message into chat_messages table
-      const result = await client.query(`
+      const result = await executeQuery(`
         INSERT INTO chat_messages (conversation_id, sender_id, message, message_type, created_on, is_deleted)
         VALUES ($1, $2, $3, $4, NOW(), false)
         RETURNING id, created_on
@@ -159,11 +122,11 @@ export class ChatService {
         error: 0,
         status: 1,
         data: {
-          message_id: result.rows[0].id,
+          message_id: result[0].id,
           sender_id: userId,
           conversation_id: messageData.conversation_id,
           message: messageData.message,
-          timestamp: result.rows[0].created_on,
+          timestamp: result[0].created_on,
           message_type: messageData.message_type || 'text',
           delivery_status: 'sent'
         },
@@ -177,45 +140,31 @@ export class ChatService {
         data: null,
         message: `Error: ${error.message}`
       };
-    } finally {
-      await client.end();
     }
   }
 
   async startConversation(userId: number, conversationData: any) {
-    const client = new Client({
-      host: '10.48.36.100',
-      port: 5432,
-      user: 'postgres',
-      password: 'Supp0rt@123',
-      database: 'nerace',
-    });
-
     try {
-      await client.connect();
-      
-      // Check if conversation already exists
-      const existingResult = await client.query(`
+      const existingResult = await executeQuery(`
         SELECT id FROM chat_conversations 
         WHERE ((user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)) 
         AND is_active = true
       `, [userId, conversationData.participant_id]);
 
-      if (existingResult.rows.length > 0) {
+      if (existingResult.length > 0) {
         return {
           success: 1,
           error: 0,
           status: 1,
           data: {
-            conversation_id: existingResult.rows[0].id,
+            conversation_id: existingResult[0].id,
             message: 'Existing conversation found'
           },
           message: 'Conversation already exists'
         };
       }
 
-      // Create new conversation
-      const result = await client.query(`
+      const result = await executeQuery(`
         INSERT INTO chat_conversations (user1_id, user2_id, topic, created_on, is_active)
         VALUES ($1, $2, $3, NOW(), true)
         RETURNING id, created_on
@@ -226,10 +175,10 @@ export class ChatService {
         error: 0,
         status: 1,
         data: {
-          conversation_id: result.rows[0].id,
+          conversation_id: result[0].id,
           participants: [userId, conversationData.participant_id],
           topic: conversationData.topic || 'New Conversation',
-          created_time: result.rows[0].created_on,
+          created_time: result[0].created_on,
           status: 'active'
         },
         message: 'Conversation started successfully'
@@ -242,24 +191,12 @@ export class ChatService {
         data: null,
         message: `Error: ${error.message}`
       };
-    } finally {
-      await client.end();
     }
   }
 
   async getOnlineUsers() {
-    const client = new Client({
-      host: '10.48.36.100',
-      port: 5432,
-      user: 'postgres',
-      password: 'Supp0rt@123',
-      database: 'nerace',
-    });
-
     try {
-      await client.connect();
-      
-      const result = await client.query(`
+      const result = await executeQuery(`
         SELECT user_id, first_name, last_name, is_online
         FROM users 
         WHERE is_login = true AND is_deleted = false
@@ -267,7 +204,7 @@ export class ChatService {
         LIMIT 20
       `);
 
-      const onlineUsers = result.rows.map(row => ({
+      const onlineUsers = result.map(row => ({
         user_id: row.user_id,
         name: `${row.first_name || 'User'} ${row.last_name || ''}`.trim(),
         status: 'online',
@@ -289,8 +226,6 @@ export class ChatService {
         data: null,
         message: `Error: ${error.message}`
       };
-    } finally {
-      await client.end();
     }
   }
 }

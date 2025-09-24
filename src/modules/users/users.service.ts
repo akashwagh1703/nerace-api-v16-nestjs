@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { Client } from 'pg';
+import { DatabaseService } from '../../common/database/database.service';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class UsersService {
-  constructor() {}
+  constructor(private databaseService: DatabaseService) {}
 
   async register(userData: any) {
     return {
@@ -18,17 +18,7 @@ export class UsersService {
   }
 
   async login(loginData: any) {
-    const client = new Client({
-      host: '10.48.36.100',
-      port: 5432,
-      user: 'postgres',
-      password: 'Supp0rt@123',
-      database: 'nerace',
-    });
-
     try {
-      await client.connect();
-      
       // Check if login is with mobile number (for OTP login)
       const isMobileLogin = /^[0-9]{10}$/.test(loginData.username);
       
@@ -44,12 +34,12 @@ export class UsersService {
       
       if (isMobileLogin && !loginData.password) {
         // Mobile OTP login - generate and send OTP
-        const result = await client.query(
+        const result = await this.databaseService.executeQuery(
           'SELECT * FROM users WHERE phone_no = $1 AND is_deleted = false',
           [loginData.username]
         );
 
-        if (result.rows.length === 0) {
+        if (result.length === 0) {
           return {
             success: 0,
             error: 1,
@@ -62,7 +52,7 @@ export class UsersService {
         const otp = '888888';
         
         // Update OTP in database
-        await client.query(
+        await this.databaseService.executeQuery(
           'UPDATE users SET opt_number = $1, updated_on = NOW() WHERE phone_no = $2',
           [parseInt(otp), loginData.username]
         );
@@ -82,12 +72,12 @@ export class UsersService {
       }
 
       // Regular email/password login
-      const result = await client.query(
+      const result = await this.databaseService.executeQuery(
         'SELECT * FROM users WHERE (email = $1 OR phone_no = $1) AND is_deleted = false',
         [loginData.username]
       );
 
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         return {
           success: 0,
           error: 1,
@@ -97,7 +87,7 @@ export class UsersService {
         };
       }
 
-      const user = result.rows[0];
+      const user = result[0];
       
       // Generate JWT token
       const token = jwt.sign(
@@ -112,7 +102,7 @@ export class UsersService {
       );
 
       // Update login status
-      await client.query(
+      await this.databaseService.executeQuery(
         'UPDATE users SET is_login = true, device_id = $1, updated_on = NOW() WHERE user_id = $2',
         [loginData.device_id, user.user_id]
       );
@@ -134,23 +124,11 @@ export class UsersService {
         data: null,
         message: `Error: ${error.message}`
       };
-    } finally {
-      await client.end();
     }
   }
 
   async verifyOtp(username: string, otp: string) {
-    const client = new Client({
-      host: '10.48.36.100',
-      port: 5432,
-      user: 'postgres',
-      password: 'Supp0rt@123',
-      database: 'nerace',
-    });
-
     try {
-      await client.connect();
-      
       // Validate mobile format
       if (!/^[0-9]{10}$/.test(username)) {
         return {
@@ -173,12 +151,12 @@ export class UsersService {
         };
       }
 
-      const result = await client.query(
+      const result = await this.databaseService.executeQuery(
         'SELECT * FROM users WHERE phone_no = $1 AND opt_number = $2 AND is_deleted = false',
         [username, parseInt(otp)]
       );
 
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         return {
           success: 0,
           error: 1,
@@ -188,7 +166,7 @@ export class UsersService {
         };
       }
 
-      const user = result.rows[0];
+      const user = result[0];
       
       // Generate JWT token after OTP verification
       const token = jwt.sign(
@@ -203,7 +181,7 @@ export class UsersService {
       );
 
       // Clear OTP and update login status
-      await client.query(
+      await this.databaseService.executeQuery(
         'UPDATE users SET opt_number = NULL, is_login = true, updated_on = NOW() WHERE user_id = $1',
         [user.user_id]
       );
@@ -226,8 +204,6 @@ export class UsersService {
         data: null,
         message: `Error: ${error.message}`
       };
-    } finally {
-      await client.end();
     }
   }
 
@@ -242,23 +218,13 @@ export class UsersService {
   }
 
   async getProfile(userId: number) {
-    const client = new Client({
-      host: '10.48.36.100',
-      port: 5432,
-      user: 'postgres',
-      password: 'Supp0rt@123',
-      database: 'nerace',
-    });
-
     try {
-      await client.connect();
-      
-      const result = await client.query(
+      const result = await this.databaseService.executeQuery(
         'SELECT * FROM users WHERE user_id = $1 AND is_deleted = false',
         [userId]
       );
 
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         return {
           success: 0,
           error: 1,
@@ -268,7 +234,7 @@ export class UsersService {
         };
       }
 
-      const user = result.rows[0];
+      const user = result[0];
       delete user.password;
 
       return {
@@ -286,8 +252,6 @@ export class UsersService {
         data: null,
         message: `Error: ${error.message}`
       };
-    } finally {
-      await client.end();
     }
   }
 
@@ -312,18 +276,8 @@ export class UsersService {
   }
 
   async getUsersList() {
-    const client = new Client({
-      host: '10.48.36.100',
-      port: 5432,
-      user: 'postgres',
-      password: 'Supp0rt@123',
-      database: 'nerace',
-    });
-
     try {
-      await client.connect();
-      
-      const result = await client.query(`
+      const result = await this.databaseService.executeQuery(`
         SELECT user_id, first_name, last_name, email, phone_no, user_type, created_on
         FROM users 
         WHERE is_deleted = false 
@@ -335,7 +289,7 @@ export class UsersService {
         success: 1,
         error: 0,
         status: 1,
-        data: result.rows,
+        data: result,
         message: 'Users list retrieved successfully'
       };
     } catch (error) {
@@ -346,8 +300,6 @@ export class UsersService {
         data: null,
         message: `Error: ${error.message}`
       };
-    } finally {
-      await client.end();
     }
   }
 }

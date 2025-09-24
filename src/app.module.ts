@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 
@@ -22,7 +21,6 @@ import { TestModule } from './modules/test/test.module';
 // Common modules
 import { DatabaseModule } from './common/database/database.module';
 import { AuthModule } from './common/auth/auth.module';
-import { HelpersModule } from './common/helpers/helpers.module';
 
 @Module({
   imports: [
@@ -37,7 +35,6 @@ import { HelpersModule } from './common/helpers/helpers.module';
     }),
     DatabaseModule,
     AuthModule,
-    HelpersModule,
     UsersModule,
     BuyerModule,
     CommodityModule,

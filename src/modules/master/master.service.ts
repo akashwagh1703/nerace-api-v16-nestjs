@@ -1,28 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { Client } from 'pg';
+import { DatabaseService } from '../../common/database/database.service';
 
 @Injectable()
 export class MasterService {
-  constructor() {}
+  constructor(private databaseService: DatabaseService) {}
 
   async getStates() {
-    const client = new Client({
-      host: '10.48.36.100',
-      port: 5432,
-      user: 'postgres',
-      password: 'Supp0rt@123',
-      database: 'nerace',
-    });
-
     try {
-      await client.connect();
-      const result = await client.query('SELECT * FROM state LIMIT 10');
-      
+      const result = await this.databaseService.executeQuery('SELECT * FROM state LIMIT 10');
       return {
         success: 1,
         error: 0,
         status: 1,
-        data: result.rows,
+        data: result,
         message: 'States retrieved successfully'
       };
     } catch (error) {
@@ -33,22 +23,11 @@ export class MasterService {
         data: null,
         message: `Error: ${error.message}`
       };
-    } finally {
-      await client.end();
     }
   }
 
   async getDistricts(stateId?: number) {
-    const client = new Client({
-      host: '10.48.36.100',
-      port: 5432,
-      user: 'postgres',
-      password: 'Supp0rt@123',
-      database: 'nerace',
-    });
-
     try {
-      await client.connect();
       let query = 'SELECT * FROM district';
       const params = [];
       
@@ -58,13 +37,13 @@ export class MasterService {
       }
       
       query += ' ORDER BY name';
-      const result = await client.query(query, params);
+      const result = await this.databaseService.executeQuery(query, params);
       
       return {
         success: 1,
         error: 0,
         status: 1,
-        data: result.rows,
+        data: result,
         message: 'Districts retrieved successfully'
       };
     } catch (error) {
@@ -75,29 +54,18 @@ export class MasterService {
         data: null,
         message: `Error: ${error.message}`
       };
-    } finally {
-      await client.end();
     }
   }
 
   async getCrops(filters: any = {}) {
-    const client = new Client({
-      host: '10.48.36.100',
-      port: 5432,
-      user: 'postgres',
-      password: 'Supp0rt@123',
-      database: 'nerace',
-    });
-
     try {
-      await client.connect();
-      const result = await client.query('SELECT * FROM crop LIMIT 10');
+      const result = await this.databaseService.executeQuery('SELECT * FROM crop LIMIT 10');
       
       return {
         success: 1,
         error: 0,
         status: 1,
-        data: result.rows,
+        data: result,
         message: 'Crops retrieved successfully'
       };
     } catch (error) {
@@ -108,8 +76,6 @@ export class MasterService {
         data: null,
         message: `Error: ${error.message}`
       };
-    } finally {
-      await client.end();
     }
   }
 
