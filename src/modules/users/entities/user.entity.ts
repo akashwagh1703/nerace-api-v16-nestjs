@@ -1,77 +1,82 @@
-import { Entity, Column } from 'typeorm';
-import { BaseEntity } from '../../../common/entities/base.entity';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('users')
-export class User extends BaseEntity {
+export class User {
+  @PrimaryGeneratedColumn({ name: 'user_id' })
+  user_id: number;
+
   @Column({ nullable: true })
   first_name: string;
 
   @Column({ nullable: true })
   last_name: string;
 
-  @Column({ unique: true, nullable: true })
+  @Column({ nullable: true })
   email: string;
-
-  @Column({ unique: true, nullable: true })
-  mobile: string;
 
   @Column({ nullable: true })
   password: string;
 
-  @Column({ default: 'farmer' })
-  user_type: string;
+  @Column({ nullable: true })
+  phone_no: string;
 
   @Column({ nullable: true })
-  profile_image: string;
-
-  @Column({ nullable: true })
-  address_line_1: string;
-
-  @Column({ nullable: true })
-  address_line_2: string;
+  address: string;
 
   @Column({ nullable: true })
   city: string;
 
   @Column({ nullable: true })
-  district: string;
-
-  @Column({ nullable: true })
   state: string;
-
-  @Column({ nullable: true })
-  pincode: string;
 
   @Column({ nullable: true })
   country: string;
 
   @Column({ nullable: true })
-  lat: string;
+  postal_code: string;
 
   @Column({ nullable: true })
-  lng: string;
-
-  @Column({ default: false })
-  is_verified: boolean;
+  profile_image: string;
 
   @Column({ nullable: true })
-  otp: string;
+  is_active: boolean;
 
   @Column({ nullable: true })
-  otp_expiry: Date;
+  is_deleted: boolean;
+
+  @Column({ nullable: true })
+  created_on: Date;
+
+  @Column({ nullable: true })
+  updated_on: Date;
+
+  @Column({ nullable: true })
+  created_by_id: number;
+
+  @Column({ nullable: true })
+  updated_by_id: number;
 
   @Column({ nullable: true })
   device_id: string;
 
   @Column({ nullable: true })
-  fcm_token: string;
-
-  @Column({ default: 'en' })
-  language: string;
-
-  @Column({ nullable: true })
   referral_code: string;
 
   @Column({ nullable: true })
-  referred_by: string;
+  opt_number: number;
+
+  @Column({ nullable: true })
+  is_login: boolean;
+
+  @Column({ nullable: true })
+  latitude: string;
+
+  @Column({ nullable: true })
+  longitude: string;
+
+  @Column({ nullable: true })
+  user_type: number;
+
+  @Column({ nullable: true })
+  type: string;
 }

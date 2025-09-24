@@ -1,8 +1,10 @@
-import { Entity, Column } from 'typeorm';
-import { BaseEntity } from '../../../common/entities/base.entity';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('states')
-export class State extends BaseEntity {
+export class State {
+  @PrimaryGeneratedColumn()
+  id: number;
+
   @Column({ nullable: true })
   name: string;
 
@@ -10,5 +12,11 @@ export class State extends BaseEntity {
   code: string;
 
   @Column({ nullable: true })
-  country_id: number;
+  country: string;
+
+  @Column({ nullable: true })
+  cities: number;
+
+  @Column({ nullable: true })
+  is_deleted: boolean;
 }

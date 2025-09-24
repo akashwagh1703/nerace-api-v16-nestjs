@@ -1,9 +1,11 @@
-import { Entity, Column } from 'typeorm';
-import { BaseEntity } from '../../../common/entities/base.entity';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('commodities')
-export class Commodity extends BaseEntity {
-  @Column()
+@Entity('commodity')
+export class Commodity {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ nullable: true })
   name: string;
 
   @Column({ nullable: true })

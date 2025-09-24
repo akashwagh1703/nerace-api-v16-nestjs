@@ -1,9 +1,9 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { BaseEntity } from '../../../common/entities/base.entity';
-import { User } from '../../users/entities/user.entity';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('trade_products')
-export class TradeProduct extends BaseEntity {
+@Entity('trade_product')
+export class TradeProduct {
+  @PrimaryGeneratedColumn()
+  id: number;
   @Column()
   seller_id: number;
 
@@ -61,7 +61,5 @@ export class TradeProduct extends BaseEntity {
   @Column({ nullable: true })
   payment_terms: string;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'seller_id' })
-  seller: User;
+
 }

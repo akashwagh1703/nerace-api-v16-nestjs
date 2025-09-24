@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { EmeetingService } from './emeeting.service';
-import { AuthGuard } from '../../common/auth/auth.guard';
 
 @ApiTags('E-Meeting')
 @Controller('emeeting')
@@ -9,18 +8,26 @@ export class EmeetingController {
   constructor(private readonly emeetingService: EmeetingService) {}
 
   @Get('meetings')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user meetings' })
-  async getMeetings(@Request() req) {
-    return this.emeetingService.getMeetings(req.user.user_id);
+  async getMeetings(@Query('user_id') userId: number = 1) {
+    return this.emeetingService.getMeetings(userId);
   }
 
   @Post('schedule')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Schedule meeting' })
-  async scheduleMeeting(@Request() req, @Body() meetingData: any) {
-    return this.emeetingService.scheduleMeeting(req.user.user_id, meetingData);
+  async scheduleMeeting(@Body() meetingData: any, @Query('user_id') userId: number = 1) {
+    return this.emeetingService.scheduleMeeting(userId, meetingData);
+  }
+
+  @Get('upcoming')
+  @ApiOperation({ summary: 'Get upcoming meetings' })
+  async getUpcomingMeetings(@Query('user_id') userId: number = 1) {
+    return this.emeetingService.getUpcomingMeetings(userId);
+  }
+
+  @Post('join/:meetingId')
+  @ApiOperation({ summary: 'Join meeting' })
+  async joinMeeting(@Query('user_id') userId: number = 1, @Query('meeting_id') meetingId: string) {
+    return this.emeetingService.joinMeeting(userId, meetingId);
   }
 }

@@ -15,6 +15,8 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { MobileLoginDto } from './dto/mobile-login.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { AuthGuard } from '../../common/auth/auth.guard';
 
 @ApiTags('Users')
@@ -34,10 +36,56 @@ export class UsersController {
     return this.usersService.login(loginUserDto);
   }
 
+  @Post('mobile-login')
+  @ApiOperation({ 
+    summary: 'Mobile login with OTP',
+    description: 'Login using mobile number to receive OTP. Provide either mobile or username parameter.'
+  })
+  async mobileLogin(@Body() mobileLoginDto: MobileLoginDto) {
+    const mobileNumber = mobileLoginDto.mobile || mobileLoginDto.username;
+    
+    if (!mobileNumber) {
+      return {
+        success: 0,
+        error: 1,
+        status: 0,
+        data: null,
+        message: 'Mobile number or username is required'
+      };
+    }
+    
+    return this.usersService.login({ username: mobileNumber, device_id: mobileLoginDto.device_id });
+  }
+
   @Post('verify-otp')
-  @ApiOperation({ summary: 'Verify OTP' })
-  async verifyOtp(@Body() body: { mobile: string; otp: string }) {
-    return this.usersService.verifyOtp(body.mobile, body.otp);
+  @ApiOperation({ 
+    summary: 'Verify OTP',
+    description: 'Verify OTP received on mobile number. Provide either mobile or username parameter along with OTP.'
+  })
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    const mobileNumber = verifyOtpDto.mobile || verifyOtpDto.username;
+    
+    if (!mobileNumber) {
+      return {
+        success: 0,
+        error: 1,
+        status: 0,
+        data: null,
+        message: 'Mobile number or username is required'
+      };
+    }
+    
+    if (!verifyOtpDto.otp) {
+      return {
+        success: 0,
+        error: 1,
+        status: 0,
+        data: null,
+        message: 'OTP is required'
+      };
+    }
+    
+    return this.usersService.verifyOtp(mobileNumber, verifyOtpDto.otp);
   }
 
   @Post('resend-otp')
@@ -47,11 +95,10 @@ export class UsersController {
   }
 
   @Get('profile')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user profile' })
   async getProfile(@Request() req) {
-    return this.usersService.getProfile(req.user.user_id);
+    const userId = req.query?.user_id || 1;
+    return this.usersService.getProfile(userId);
   }
 
   @Put('profile')
@@ -116,5 +163,11 @@ export class UsersController {
       },
       message: 'Master data retrieved successfully'
     };
+  }
+
+  @Get('list')
+  @ApiOperation({ summary: 'Get users list' })
+  async getUsersList() {
+    return this.usersService.getUsersList();
   }
 }
