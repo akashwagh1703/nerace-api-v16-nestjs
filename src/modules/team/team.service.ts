@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { CommonService } from '../../common/helpers/common.service';
 
 @Injectable()
 export class TeamService {
-  constructor(private commonService: CommonService) {}
+  constructor() {}
 
   async getTeamMembers(userId: number) {
-    return this.commonService.successResponse([], 'Team members retrieved successfully');
+    return {
+      success: 1,
+      error: 0,
+      status: 1,
+      data: [],
+      message: 'Team members retrieved successfully'
+    };
   }
 }

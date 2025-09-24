@@ -1,15 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { CommonService } from '../../common/helpers/common.service';
 
 @Injectable()
 export class TradeService {
-  constructor(private commonService: CommonService) {}
+  constructor() {}
 
-  async getTradeProducts(userId: number) {
-    return this.commonService.successResponse([], 'Trade products retrieved successfully');
+  async getTradeProducts(filters: any = {}) {
+    return {
+      success: 1,
+      error: 0,
+      status: 1,
+      data: [],
+      message: 'Trade products retrieved successfully'
+    };
   }
 
   async createTradeProduct(userId: number, productData: any) {
-    return this.commonService.successResponse(null, 'Trade product created successfully');
+    return {
+      success: 1,
+      error: 0,
+      status: 1,
+      data: null,
+      message: 'Trade product created successfully'
+    };
   }
 }

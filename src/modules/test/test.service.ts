@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { executeQuery, getDatabaseConfig } from '../../common/config/database.config';
 
 @Injectable()
 export class TestService {
-  constructor(@InjectDataSource() private dataSource: DataSource) {}
+  constructor() {}
 
   async testDatabaseConnection() {
     try {
-      const result = await this.dataSource.query('SELECT NOW() as current_time');
-      const options = this.dataSource.options as any;
+      const result = await executeQuery('SELECT NOW() as current_time');
+      const options = getDatabaseConfig();
       return {
         status: 'Connected',
         database: options.database,

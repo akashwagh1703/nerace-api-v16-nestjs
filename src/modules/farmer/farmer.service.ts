@@ -1,21 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { Client } from 'pg';
+import { createDatabaseConnection } from '../../common/config/database.config';
 
 @Injectable()
 export class FarmerService {
   constructor() {}
 
   async getFarms(farmerId: number) {
-    const client = new Client({
-      host: '10.48.36.100',
-      port: 5432,
-      user: 'postgres',
-      password: 'Supp0rt@123',
-      database: 'nerace',
-    });
-
+    let client;
     try {
-      await client.connect();
+      client = await createDatabaseConnection();
       const result = await client.query(`
         SELECT tp.*, c.name as crop_name
         FROM trade_product tp
@@ -40,21 +33,14 @@ export class FarmerService {
         message: `Error: ${error.message}`
       };
     } finally {
-      await client.end();
+      if (client) await client.end();
     }
   }
 
   async addProduct(farmerId: number, productData: any) {
-    const client = new Client({
-      host: '10.48.36.100',
-      port: 5432,
-      user: 'postgres',
-      password: 'Supp0rt@123',
-      database: 'nerace',
-    });
-
+    let client;
     try {
-      await client.connect();
+      client = await createDatabaseConnection();
       const result = await client.query(`
         INSERT INTO trade_product (user_id, prod_details, sell_qty, sell_qty_unit, price, price_unit, city, state, created_on, is_active, is_deleted)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), true, false)
@@ -77,21 +63,14 @@ export class FarmerService {
         message: `Error: ${error.message}`
       };
     } finally {
-      await client.end();
+      if (client) await client.end();
     }
   }
 
   async getDashboard(farmerId: number) {
-    const client = new Client({
-      host: '10.48.36.100',
-      port: 5432,
-      user: 'postgres',
-      password: 'Supp0rt@123',
-      database: 'nerace',
-    });
-
+    let client;
     try {
-      await client.connect();
+      client = await createDatabaseConnection();
       
       const productsResult = await client.query('SELECT COUNT(*) as total_products FROM trade_product WHERE user_id = $1 AND is_deleted = false', [farmerId]);
       const bidsResult = await client.query('SELECT COUNT(*) as total_bids FROM trade_product_bidding tpb JOIN trade_product tp ON tpb.trade_product_id = tp.id WHERE tp.user_id = $1 AND tpb.is_deleted = false', [farmerId]);
@@ -115,7 +94,7 @@ export class FarmerService {
         message: `Error: ${error.message}`
       };
     } finally {
-      await client.end();
+      if (client) await client.end();
     }
   }
 }
